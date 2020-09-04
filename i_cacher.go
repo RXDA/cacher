@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 )
+
 // TimerCache 定时缓存
 type TimerCache interface {
 	// 获取缓存key
@@ -40,12 +41,12 @@ func startAutoCache() {
 	go func() {
 		<-startChan
 		for {
-			cases := make([]reflect.SelectCase, len(caches.cache))
-			for i, ch := range caches.cache {
-				cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch.C)}
+			cases := make([]reflect.SelectCase, 0, len(caches.cache))
+			for _, ch := range caches.cache {
+				cases = append(cases, reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch.C)})
 			}
 			chosen, _, ok := reflect.Select(cases)
-			if ok{
+			if ok {
 				caches.RLock()
 				ch := caches.cache[chosen]
 				caches.RUnlock()
@@ -66,8 +67,8 @@ func RegisterAutoCache(c TimerCache) int {
 		TimerCache: c,
 		Ticker:     time.NewTicker(c.GetCheckDuration()),
 	})
-	if len(caches.cache) == 1{
-		startChan<- struct{}{}
+	if len(caches.cache) == 1 {
+		startChan <- struct{}{}
 	}
 	return len(caches.cache) - 1
 }
