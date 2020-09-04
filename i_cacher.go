@@ -50,10 +50,13 @@ func startAutoCache() {
 				caches.RLock()
 				ch := caches.cache[chosen]
 				caches.RUnlock()
-				err := ch.GetNewCacheData()
-				if err != nil {
-					logrus.Errorf("get cache data error, key: %s, error: %s", ch.GetKey(), err.Error())
-				}
+
+				go func() {
+					err := ch.GetNewCacheData()
+					if err != nil {
+						logrus.Errorf("get cache data error, key: %s, error: %s", ch.GetKey(), err.Error())
+					}
+				}()
 			}
 		}
 	}()
